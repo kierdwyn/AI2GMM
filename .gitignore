@@ -11,7 +11,7 @@
 # Build results
 
 [Dd]ebug/
-[Rr]elease/
+# [Rr]elease/
 x64/
 build/
 [Bb]in/

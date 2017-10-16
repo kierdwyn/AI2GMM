@@ -85,13 +85,14 @@ cm = lines(numel(confs));
 F1_stats = zeros(numel(ins), numel(confs) * 4);
 Acc_stats = zeros(numel(ins), numel(confs) * 4);
 Time_stats = zeros(numel(ins), numel(confs) * 2);
-conf_idxs = [4 2 1];
+conf_idxs = [4 2];
 for conf_idx = conf_idxs
     model = models(conf_idx);
     fprintf('Running %s\n',conf_names{conf_idx});
     conf = confs{conf_idx};
     prior = priors{conf_idx};
-    for j = 1:numel(ins)
+%     for j = 1:numel(ins)
+    for j = 1:2
         %------split data into training and testing------
         in = ismember(y(:,1), ins{j}) & (mod(1:length(y), 5)==0)';
 
