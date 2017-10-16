@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <TargetExtMex>.mexw64</TargetExtMex>
+    <MatlabPath>C:\Program Files\MATLAB\R2015b</MatlabPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetExt>$(TargetExtMex)</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(MatlabPath)\extern\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MATLAB_MEX_FILE</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExtMex)</OutputFile>
+      <AdditionalDependencies>$(MatlabPath)\extern\lib\win64\microsoft\libmx.lib;$(MatlabPath)\extern\lib\win64\microsoft\libmex.lib;$(MatlabPath)\extern\lib\win64\microsoft\libmat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ModuleDefinitionFile>mex.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="TargetExtMex">
+      <Value>$(TargetExtMex)</Value>
+    </BuildMacro>
+    <BuildMacro Include="MatlabPath">
+      <Value>$(MatlabPath)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
