@@ -1,4 +1,6 @@
 % Demo for non-exhaustive learning experiments on the synthetic dataset.
+clear;
+startup;
 
 %-----load data and normalize-------
 fpath = '..\data\synthetic\'; % folder containing the data set

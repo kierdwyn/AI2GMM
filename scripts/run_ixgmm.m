@@ -7,8 +7,6 @@ fpath = '..\data\synthetic\'; % folder containing the data set
 name = '1base_d2_0.03_0.5_4_10'; % file name of the data set without extension
 fpath = GetFullPath(fpath);
 load([fpath name '.mat'],'x','y');
-has0 = ~all(y(:,1));
-y(:,1) = y(:,1)+has0;
 if size(x,2)>50
     x = pca_wzy(x,30);
 end
@@ -62,11 +60,7 @@ y1 = [ytrain;ytest];
 ypred = align_label(y1,label,ntrain);
 
 %-------evaluate results-----------
-if has0
-    F1 = calc_F1(label(y1~=1), y1(y1~=1), 2, ntrain,1);
-else
-    F1 = calc_F1(label, y1, 2, ntrain,1);
-end
+F1 = calc_F1(label, y1, 2, ntrain,1);
 Acc = calc_acc(ypred(ntrain+1:end,1),ytest);
 fprintf('mean F1: %.4f, weighted F1: %.4f, ', F1);
 fprintf('mean Acc: %.4f, weighted Acc: %.4f, ', Acc);
