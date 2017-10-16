@@ -24,9 +24,9 @@ for nk = 2:numel(ins)
 end
 
 %-----model control parameters-----
-max_sweep = 200;
+max_sweep = 1000;
 init_sweep = 100;
-burnin = 100;
+burnin = 600;
 sample = 20;
 n_iter = 3;
 
@@ -85,14 +85,13 @@ cm = lines(numel(confs));
 F1_stats = zeros(numel(ins), numel(confs) * 4);
 Acc_stats = zeros(numel(ins), numel(confs) * 4);
 Time_stats = zeros(numel(ins), numel(confs) * 2);
-conf_idxs = [4 2];
+conf_idxs = [4 2 1];
 for conf_idx = conf_idxs
     model = models(conf_idx);
     fprintf('Running %s\n',conf_names{conf_idx});
     conf = confs{conf_idx};
     prior = priors{conf_idx};
-%     for j = 1:numel(ins)
-    for j = 1:2
+    for j = 1:numel(ins)
         %------split data into training and testing------
         in = ismember(y(:,1), ins{j}) & (mod(1:length(y), 5)==0)';
 
