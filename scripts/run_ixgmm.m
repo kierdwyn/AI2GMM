@@ -18,6 +18,7 @@ max_sweep = 1000;   % # of sweeps after adding test data.
 init_sweep = 200;   % # of training sweeps.
 burnin = 600;       % # of burnin sweeps we don't take sample.
 sample = 20;        % # of samples we take between burinin+1:max_sweep.
+max_n_c = 300;      % maximum # of clusters allowed.
 ins = [2 5 6 10];   % A list of training classes.
 train_ratio = 5;    % 1/5 (20%) training data from trainig classes.
 model = 3;          % 1 run igmm, 2 run i2gmm, 3 run ai2gmm
@@ -55,7 +56,7 @@ conf = confs{model};
 prior = priors{model};
 fname = [fpath name '_i' num2str(model) 'gmm_' num2str(numel(ytrain)) '\result1'];
 [ label, samples, lastlabel, bestlabel, likelihood, rtime, hyperparams ] =...
-    i3gmm_exe( xtest,xtrain,ytrain, fname, conf, prior, model, max_sweep, burnin, sample, init_sweep );
+    i3gmm_exe( xtest,xtrain,ytrain, fname, conf, prior, model, max_sweep, burnin, sample, init_sweep, max_n_c );
 y1 = [ytrain;ytest];
 ypred = align_label(y1,label,ntrain);
 

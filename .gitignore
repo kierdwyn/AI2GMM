@@ -29,8 +29,10 @@ build/
 *.ilk
 *.meta
 *.obj
+*.iobj
 *.pch
 *.pdb
+*.ipdb
 *.pgc
 *.pgd
 *.rsp
@@ -41,6 +43,7 @@ build/
 *.tmp
 *.tmp_proj
 *.log
+*.tlog
 *.vspscc
 *.vssscc
 .builds

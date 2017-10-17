@@ -71,6 +71,7 @@ public:
 	int max_table_id = 0;
 	double n_tables = 0;
 	double alpha;		// Concentration parameter
+	double max_clusters = INFINITY;
 
 	DP(dist_t dist_choice, double alpha);
 	DP(dist_t dist_choice, Distribution<T> *H, double alpha);

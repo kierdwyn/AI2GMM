@@ -25,6 +25,7 @@ public:
 	int tablelike = 0; // 0: point, 1:table, 2:combine, 3:condition
 	bool all_points = false; // Don't restrict data point to its cluster when sampling its component
 	bool cpnt_prior = false;
+	double max_clusters = INFINITY;
 
 	I3gmm(){}
 	I3gmm(Vector mu0, Matrix psi0, double m,

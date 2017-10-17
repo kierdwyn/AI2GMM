@@ -1,4 +1,5 @@
-function [ label, samples, lastlabel, bestlabel, likelihood, rtime, hyperparams ] = i3gmm_exe( xtest,xtrain,ytrain, fname, conf, prior, model, max_sweep, burnin, sample, init_sweep, load_result )
+function [ label, samples, lastlabel, bestlabel, likelihood, rtime, hyperparams ] =...
+    i3gmm_exe( xtest,xtrain,ytrain, fname, conf, prior, model, max_sweep, burnin, sample, init_sweep, max_n_clusters, load_result )
 %I3GMM_EXE Running I3GMM/I2GMM/IGMM models.
 %     Inputs:
 %         Required:
@@ -54,11 +55,12 @@ if ~exist('init_sweep','var'), init_sweep = 100; end
 if ~exist('burnin','var'), burnin = max_sweep/2; end
 if ~exist('sample','var'), sample = 10; end
 if ~exist('load_result','var'), load_result = 0; end
+if ~exist('max_n_clusters','var'), max_n_clusters = []; end
 
 [fpath,~] = fileparts(fname);
 fres = [ '"' fname '"'];
 save_data([fpath '\data'], xtest, conf, prior, [ytrain xtrain], []); % For exe
-args = gen_arguments([fpath '\data'], fres, model, max_sweep, burnin, sample, init_sweep);
+args = gen_arguments([fpath '\data'], fres, model, max_sweep, burnin, sample, init_sweep, max_n_clusters);
 fid = fopen('cmd.txt', 'wt');
 fprintf(fid, '%s', args);
 fclose(fid);

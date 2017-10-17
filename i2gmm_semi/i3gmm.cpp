@@ -220,8 +220,8 @@ void I3gmm::cluster_gibbs(int max_sweep, int burnin, int n_sample, const char* l
 			sample_labels[(i - burnin) / sample_interval * 2 + 1] = ret[1];
 		}
 
-		if (clusters.size() > 300) {
-			PERROR("Reached # of clusters upperbound (more than 300), stop.");
+		if (clusters.size() > max_clusters) {
+			PERROR(("Reached # of clusters upperbound (more than"+ to_string(max_clusters) +"), stop.").c_str());
 			exit(1);
 		}
 	}

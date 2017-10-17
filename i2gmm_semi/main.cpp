@@ -111,13 +111,15 @@ void conf_i3gmm(I3gmm &i3gmm, Matrix &conf, int conf_start) {
 	if (conf.n > conf_start+8) i3gmm.all_points = conf[0][conf_start+8];
 }
 
-void run_i3gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set, int MAX_SWEEP, int burnin, int n_samples, int init_sweep){
+void run_i3gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set,
+	int MAX_SWEEP, int burnin, int n_samples, double max_clusters, int init_sweep){
 	cout << "Parameters: " << " m " << conf[0][0] << " c1 " << conf[0][1] << " c2 " << conf[0][2]
 		<< " alpha0 " << conf[0][3] << " beta0 " << conf[0][4] << " alpha1 " << conf[0][5] << " beta1 " << conf[0][6]
 		<< " alpha " << conf[0][7] << " gamma " << conf[0][8] << endl;
 	I3gmm i3gmm(prior[0], prior.submat(1, prior.r, 0, prior.m),
 		conf[0][0], conf[0][1], conf[0][2], conf[0][3], conf[0][4], conf[0][5], conf[0][6], conf[0][7], conf[0][8]);
 	conf_i3gmm(i3gmm, conf, 9);
+	i3gmm.max_clusters = max_clusters;
 	//i3gmm.adjustable = false;
 	if (train_set.size() != 0){
 		i3gmm.add_data_with_init(train_set, train.submat(0, train.r, 0, train.m-prior.m));
@@ -141,12 +143,14 @@ void run_i3gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, ve
 	}
 }
 
-void run_i2gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set, int MAX_SWEEP, int burnin, int n_samples, int init_sweep=10){
+void run_i2gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set,
+	int MAX_SWEEP, int burnin, int n_samples, double max_clusters, int init_sweep=10){
 	cout << "Parameters: m " << conf[0][0] << " kappa0 " << conf[0][1] << " kappa1 " << conf[0][2]
 		<< " alpha " << conf[0][3] << " gamma " << conf[0][4] << endl;
 	I3gmm i3gmm(prior[0], prior.submat(1, prior.r, 0, prior.m),
 		conf[0][0], conf[0][1], conf[0][2], conf[0][3], conf[0][4]);
 	conf_i3gmm(i3gmm, conf, 5);
+	i3gmm.max_clusters = max_clusters;
 	if (train_set.size() != 0){
 		i3gmm.add_data_with_init(train_set, train.submat(0, train.r, 0, train.m - prior.m));
 		i3gmm.cluster_gibbs(init_sweep, 0, 0, (resultfile + "_gibbslog_prior.txt").c_str());
@@ -165,11 +169,13 @@ void run_i2gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, ve
 	}
 }
 
-void run_dp(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set, int MAX_SWEEP, int burnin, int n_samples){
+void run_dp(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set,
+	int MAX_SWEEP, int burnin, int n_samples, double max_clusters){
 	cout << "Parameters: m " << conf[0][0] << " kappa0 " << conf[0][1] << " alpha " << conf[0][2] << endl;
 	HyperParams::init(prior[0], prior.submat(1, prior.r, 0, prior.m), conf[0][0], conf[0][1], 0);
 	StutNIW *dist = new StutNIW();
 	DP<Vector> dpm(Distribution<Vector>::STU_NIW, dist, conf[0][2]);
+	dpm.max_clusters = max_clusters;
 	if (train_set.size() != 0){
 		dpm.add_prior(train_set, train.submat(0, train.r, 0, 1));
 	}
@@ -298,6 +304,7 @@ int main(int argc, char* argv[]) {
 		int INIT_SWEEP = 50;
 		int BURNIN = 50;
 		int SAMPLE = (MAX_SWEEP - BURNIN) / 10; // Default value is 10 sample + 1 post burnin
+		double MAX_CLUSTERS = INFINITY;
 
 		//srand(time(NULL));
 		if (argc > 4)
@@ -315,6 +322,8 @@ int main(int argc, char* argv[]) {
 			traindatafile = argv[9];
 		if (argc > 10)
 			INIT_SWEEP = atoi(argv[10]);
+		if (argc > 11)
+			MAX_CLUSTERS = atoi(argv[11]);
 
 		//string datafile;
 		//string priorfile;
@@ -357,11 +366,11 @@ int main(int argc, char* argv[]) {
 
 		step();
 		if (model == 1)
-			run_dp(result_dir, prior, conf, train, train_set, test_set, MAX_SWEEP, BURNIN, SAMPLE);
+			run_dp(result_dir, prior, conf, train, train_set, test_set, MAX_SWEEP, BURNIN, SAMPLE, MAX_CLUSTERS);
 		if (model == 2)
-			run_i2gmm(result_dir, prior, conf, train, train_set, test_set, MAX_SWEEP, BURNIN, SAMPLE, INIT_SWEEP);
+			run_i2gmm(result_dir, prior, conf, train, train_set, test_set, MAX_SWEEP, BURNIN, SAMPLE, MAX_CLUSTERS, INIT_SWEEP);
 		if (model == 3)
-			run_i3gmm(result_dir, prior, conf, train, train_set, test_set, MAX_SWEEP, BURNIN, SAMPLE, INIT_SWEEP);
+			run_i3gmm(result_dir, prior, conf, train, train_set, test_set, MAX_SWEEP, BURNIN, SAMPLE, MAX_CLUSTERS, INIT_SWEEP);
 		step();
 	}
 

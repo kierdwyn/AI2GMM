@@ -1,1 +1,1 @@
-"..\data\synthetic\1base_d2_0.03_0.5_4_10_i2gmm5000000_275\data.matrix" "..\data\synthetic\1base_d2_0.03_0.5_4_10_i2gmm5000000_275\data_prior.matrix" "..\data\synthetic\1base_d2_0.03_0.5_4_10_i2gmm5000000_275\data_params.matrix" "..\data\synthetic\1base_d2_0.03_0.5_4_10_i2gmm5000000_275\result3" 2 200 100 20 "..\data\synthetic\1base_d2_0.03_0.5_4_10_i2gmm5000000_275\data_train.matrix" 100
+continue "D:\cyc\Documents\GitHub\AI2GMM\data\synthetic\1base_d2_0.03_0.5_4_10_i2gmm_299\result1" 0 0 1 0 1

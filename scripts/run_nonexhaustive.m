@@ -28,6 +28,7 @@ max_sweep = 1000;
 init_sweep = 100;
 burnin = 600;
 sample = 20;
+max_n_c = 300;
 n_iter = 3;
 
 %-----hyper params------
@@ -140,7 +141,7 @@ for conf_idx = conf_idxs
         for i = 1 : n_iter
             fres = [ '"' fname 'result' num2str(i) '"'];
             % Run exe program
-            args = gen_arguments([fname 'data'], fres, model, max_sweep, burnin, sample, init_sweep);
+            args = gen_arguments([fname 'data'], fres, model, max_sweep, burnin, sample, init_sweep, max_n_c);
             fid = fopen('cmd.txt', 'wt');
             fprintf(fid, '%s', args);
             fclose(fid);

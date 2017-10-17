@@ -169,6 +169,10 @@ void DP<T>::cluster_gibbs(int max_sweep, int burnin = 0, int n_sample = 0, const
 			Matrix ret = gen_labels(ordered_custs);
 			sample_labels[(i - burnin) / sample_interval] = ret[0];
 		}
+		if (tables.size() > max_clusters) {
+			PERROR(("Reached # of clusters upperbound (more than" + to_string(max_clusters) + "), stop.").c_str());
+			exit(1);
+		}
 	}
 
 	if (logfile.is_open()) logfile.close();
