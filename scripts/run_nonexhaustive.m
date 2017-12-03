@@ -86,7 +86,7 @@ cm = lines(numel(confs));
 F1_stats = zeros(numel(ins), numel(confs) * 4);
 Acc_stats = zeros(numel(ins), numel(confs) * 4);
 Time_stats = zeros(numel(ins), numel(confs) * 2);
-conf_idxs = [4 2 1];
+conf_idxs = [5 2 1];
 for conf_idx = conf_idxs
     model = models(conf_idx);
     fprintf('Running %s\n',conf_names{conf_idx});

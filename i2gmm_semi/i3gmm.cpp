@@ -675,6 +675,7 @@ Matrix I3gmm::gen_labels(vector<Customer<Vector>*> &res){
 void I3gmm::renew_hyper_params(){
 	double old_kap0 = INFINITY, old_psi00 = INFINITY,i = 0;
 	double &kap1 = HyperParams::kappa1, &kap0 = HyperParams::kappa0;
+	HyperParams::n_classes = clusters.size();
 	while (abs(old_kap0 - kap0) / kap0 > 0.1
 		|| abs(old_psi00 - HyperParams::psi0[0][0]) / HyperParams::psi0[0][0] > 0.1) {
 		old_kap0 = kap0; old_psi00 = HyperParams::psi0[0][0];

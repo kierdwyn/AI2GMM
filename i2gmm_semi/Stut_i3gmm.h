@@ -35,6 +35,7 @@ public:
 	static Vector mx_all;
 	static Matrix sx_all;
 	static double nx_all;
+	static double n_classes;
 
 private:
 	// Hyper-parameters for i3gmm
@@ -59,6 +60,8 @@ public:
 	//Matrix sigma_s;
 
 	// Hidden variables for calculating hyper-parameters
+	double n_k = 0, sum_n_kl = 0;
+	Matrix sum_scatter_mu_kl;
 	Matrix sum_scatter_kl;
 	Vector sum_mu_kl;
 	Vector mu_h;
