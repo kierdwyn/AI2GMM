@@ -21,7 +21,7 @@ public:
 	int outlier_ratio = 0, prior_type = 0; // 0:dp, 1:log2, 2:uniform
 	bool tune_on_train = false;
 	int kap1_bigthan_kap0 = 0; double kap1_high = 0;
-	int all_in_H = 0; // 0:origin, 1: full, 2: ML
+	int all_in_H = 4; // 0:origin, 1: full, 2: MAP mu0 Psi0, 4: ML mu0 Psi0.
 	int tablelike = 0; // 0: point, 1:table, 2:combine, 3:condition
 	bool all_points = false; // Don't restrict data point to its cluster when sampling its component
 	bool cpnt_prior = false;

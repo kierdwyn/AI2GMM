@@ -24,7 +24,7 @@ train_sweep = 200; % # of Gibbs sweeps performed on training data before adding 
 m = 2+d;
 mu0 = zeros(1,d); sigma0 = eye(d)*(m-d-1);
 kappa0 = 0.1; kappa1 = 0.5;
-alpha = 1; gamma = 1;
+alpha = 1; gamma = 0;
 % hyper parameters for igmm
 confs{1} = [m kappa0 alpha];
 priors{1} = [mu0;sigma0];
@@ -37,7 +37,7 @@ c1 = 0.1; c2 = d+2;
 beta0 = 20; alpha0 = kappa0*beta0 + 1;
 beta1 = 20; alpha1 = kappa1*beta1 + 1;
 confs{3} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma];
-confs{3} = [confs{3} [ 5 0 0 [1 0] 0 0]]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
+confs{3} = [confs{3} [ 5 0 0 [0 0] 4 0]]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
 priors{3} = [mu0;sigma0*(c2-d)];
 
 %--------------train i3gmm---------------
