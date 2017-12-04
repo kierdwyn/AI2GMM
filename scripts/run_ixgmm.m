@@ -38,11 +38,11 @@ confs{2} = [m kappa0 kappa1 alpha gamma specs{2}];
 c1 = 0.1; c2 = d+2;
 beta0 = 20; alpha0 = beta0*kappa0 + 1;
 beta1 = 20; alpha1 = beta1*kappa1 + 1;
-priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 5 0 0 [1 0] 4 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
+priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 5 0 0 [0 0] 4 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
 confs{3} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{3}];
 
 %------split data into training and testing------
-in = ismember(y(:,1), ins) & (mod(1:length(y), 5)==0)';
+in = ismember(y(:,1), ins) & (mod(1:length(y), train_ratio)==0)';
 xtrain = x(in, :);
 ytrain = y(in, 1);
 xtest = x(~in, :);

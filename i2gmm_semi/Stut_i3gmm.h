@@ -59,8 +59,10 @@ public:
 	//Matrix sigma_s;
 
 	// Hidden variables for calculating hyper-parameters
-	Matrix sum_scatter_kl;
-	Vector sum_mu_kl;
+	double sum_square_n_kl = 0;
+	Matrix sum_w_scatter_kl;
+	Matrix sum_w_scatter;
+	Vector sum_w_mu_kl;
 	Vector mu_h;
 	Matrix sigma_h;
 

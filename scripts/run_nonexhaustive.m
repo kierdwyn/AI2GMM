@@ -45,7 +45,7 @@ c1 = 0.1; c2 = d+2;
 beta0 = 20; alpha0 = beta0*kappa0 + 1;
 beta1 = 20; alpha1 = beta1*kappa1 + 1;
 % priors{3} = [mu0;sigma0*(c2+d+1)]; specs{3} = [ 0 0 0 [0 0] 0 0];
-priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 5 0 1 [1 0] 0 0];
+priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 5 0 0 [0 0] 0 0];
 confs{3} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{3}];
 priors{4} = priors{3}; specs{4} = [5 0 0 [1 0] 0 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
 confs{4} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{4}];
@@ -86,7 +86,7 @@ cm = lines(numel(confs));
 F1_stats = zeros(numel(ins), numel(confs) * 4);
 Acc_stats = zeros(numel(ins), numel(confs) * 4);
 Time_stats = zeros(numel(ins), numel(confs) * 2);
-conf_idxs = [4 2 1];
+conf_idxs = [5 2 1];
 for conf_idx = conf_idxs
     model = models(conf_idx);
     fprintf('Running %s\n',conf_names{conf_idx});
