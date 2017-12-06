@@ -42,14 +42,14 @@ priors{2} = [mu0;sigma0]; specs{2} = [ 5 0 0 [0 0] 0 0];
 confs{2} = [m kappa0 kappa1 alpha gamma specs{2}];
 
 c1 = 0.1; c2 = d+2;
-beta0 = 20; alpha0 = beta0*kappa0 + 1;
-beta1 = 20; alpha1 = beta1*kappa1 + 1;
+beta0 = d; alpha0 = beta0*kappa0 + 1;
+beta1 = d; alpha1 = beta1*kappa1 + 1;
 % priors{3} = [mu0;sigma0*(c2+d+1)]; specs{3} = [ 0 0 0 [0 0] 0 0];
-priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 5 0 0 [0 0] 0 0];
+priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 0 0 0 [0 0] 0 0];
 confs{3} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{3}];
 priors{4} = priors{3}; specs{4} = [5 0 0 [1 0] 0 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
 confs{4} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{4}];
-priors{5} = priors{3}; specs{5} = [5 0 0 [1 0] 4 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
+priors{5} = priors{3}; specs{5} = [5 0 0 [0 0] 0 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table
 confs{5} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{5}];
 
 models = [1 2 3 3 3];% 1: igmm 2: i2gmm 3: i3gmm
@@ -86,13 +86,14 @@ cm = lines(numel(confs));
 F1_stats = zeros(numel(ins), numel(confs) * 4);
 Acc_stats = zeros(numel(ins), numel(confs) * 4);
 Time_stats = zeros(numel(ins), numel(confs) * 2);
-conf_idxs = [5 2 1];
+conf_idxs = [5 3];
 for conf_idx = conf_idxs
     model = models(conf_idx);
     fprintf('Running %s\n',conf_names{conf_idx});
     conf = confs{conf_idx};
     prior = priors{conf_idx};
-    for j = 1:numel(ins)
+%     for j = 1:numel(ins)
+    for j = 4
         %------split data into training and testing------
         in = ismember(y(:,1), ins{j}) & (mod(1:length(y), 5)==0)';
 
