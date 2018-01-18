@@ -28,7 +28,6 @@ double HyperParams::kap1over0;
 Vector HyperParams::mx_all;
 Matrix HyperParams::sx_all;
 double HyperParams::nx_all;
-double HyperParams::n_classes;
 
 
 HyperParams::HyperParams(Vector mu0, Matrix sigma0, double m,
@@ -77,69 +76,68 @@ void HyperParams::init(Vector mu0, Matrix sigma0, double m,
 }
 
 template <class Iter>
-void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice){
+void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice, bool weighted){
 	int K = 0, d = mu0.n;
 	Vector mu0_1(d); mu0_1.zero();
 	Matrix sum_sigma_hinv(d); sum_sigma_hinv.zero();
 	double kappa1_1 = 0, kappa1_2 = 0, kappa0_1 = 0;
 	Matrix sx_all1 = sx_all;
 	Vector mx_all1 = mx_all;
-	int nx_all1 = nx_all;
+	int nx_all1 = nx_all, nx_kappa1 = nx_all;
 
 	for (Iter citer = first; citer != last; ++citer){
 		DP<Vector> *cluster = dynamic_cast<DP<Vector>*>(*citer);
 		StutGlobal3 *c_dist = dynamic_cast<StutGlobal3*>(cluster->get_dist());
-		if (c_dist->sum_n < nx_all / n_classes / 2) { // Skip clusters don't have enough points.
-			if (psi0choice > 1) {
-				sx_all1 -= c_dist->sum_scatter;
-				for (Table<Vector> *t : cluster->tables) {
-					StutLocal3 *l_dist = dynamic_cast<StutLocal3*>(t->H);
-					mx_all1 -= l_dist->mean*l_dist->n_points;
-					nx_all1 -= l_dist->n_points;
-				}
+		if (c_dist->sum_n < mu0.n) { // Skip clusters don't have enough points.
+			sx_all1 -= c_dist->sum_scatter;
+			for (Table<Vector> *t : cluster->tables) {
+				StutLocal3 *l_dist = dynamic_cast<StutLocal3*>(t->H);
+				mx_all1 -= l_dist->mean*l_dist->n_points;
+				nx_all1 -= l_dist->n_points;
+				nx_kappa1 -= l_dist->n_points;
 			}
 			continue;
 		}
-		if (psi0choice > 1){
-			for (Customer<Vector>* cust : cluster->unassigned_custs) {
-				sx_all1 -= cust->data >> cust->data;
-				mx_all1 -= cust->data;
-				nx_all1--;
-			}
+		for (Customer<Vector>* cust : cluster->unassigned_custs) {
+			sx_all1 -= cust->data >> cust->data;
+			mx_all1 -= cust->data;
+			nx_all1--;
+			nx_kappa1--;
 		}
 
 		// Update mu_kl
 		c_dist->n_k = 0, c_dist->sum_n_kl = 0;
-		c_dist->sum_mu_kl.zero();
 		c_dist->sum_scatter_mu_kl.zero();
 		c_dist->sum_scatter_kl.zero();
+		c_dist->sum_mu_kl.zero();
+		c_dist->sum_n2_kl = 0;
 		for (Table<Vector> *t : cluster->tables) {
-			if (t->n_custs < c_dist->sum_n / c_dist->n_clusters / 2) continue; // Skip components contains too few points
 			StutLocal3 *l_dist = dynamic_cast<StutLocal3*>(t->H);
 			l_dist->update_hidden_vars();
-			c_dist->update_hidden_vars(l_dist, 1);
+			c_dist->update_hidden_vars(l_dist, 1, weighted);
 		}
 		// Update mu_h (mu_k),sigma_k
-		c_dist->update_hidden_vars();
+		c_dist->update_hidden_vars(weighted);
 
 		Matrix sigma_hinv = c_dist->sigma_h.inverse();
 		// Update kappa1_2
 		for (Table<Vector> *t : cluster->tables) {
-			if (t->n_custs < c_dist->sum_n / c_dist->n_clusters / 2) continue; // Skip components contains too few points
+			//if (t->n_custs < d) { nx_kappa1 -= t->n_custs; continue; }
 			StutLocal3 *l_dist = dynamic_cast<StutLocal3*>(t->H);
 			Vector diff = l_dist->mu_kl - c_dist->mu_h;
-			kappa1_2 += diff * (sigma_hinv * diff);
+			kappa1_2 += (diff * (sigma_hinv * diff))
+				* (weighted ? l_dist->n_points : 1);
 		}
 		// Update kappa0_1, kappa1_1
 		Vector diff = c_dist->mu_h - mu0;
-		kappa0_1 += diff * (sigma_hinv * diff);
+		kappa0_1 += (diff * (sigma_hinv * diff)) * (weighted ? c_dist->sum_n : 1);
 		kappa1_1 += c_dist->n_k;
 		sum_sigma_hinv += sigma_hinv;
 		mu0_1 += (sigma_hinv * c_dist->mu_h);
 		K++;
 	}
-	kappa1 = (2 * (alpha1 - 1) + d*kappa1_1) / (2 * beta1 + kappa1_2);
-	kappa0 = (2 * (alpha0 - 1) + d*K) / (2 * beta0 + kappa0_1);
+	kappa1 = (2 * (alpha1 - 1) + d*(weighted ? 1 : kappa1_1)) / (2 * beta1 + kappa1_2 / (weighted ? nx_kappa1 : 1));
+	kappa0 = (2 * (alpha0 - 1) + d*(weighted ? 1 : K)) / (2 * beta0 + kappa0_1 / (weighted ? nx_all1 : 1));
 	kappa0 = 1e-4 > kappa0 ? 1e-4 : kappa0;
 	kappa1 = 1e-4 > kappa1 ? 1e-4 : kappa1;
 	Vector diff = mu0 - mu00;
@@ -332,25 +330,28 @@ void StutGlobal3::reset(){
 	sum_scatter.zero();
 }
 
-void StutGlobal3::update_hidden_vars(){
-	mu_h = (mu0*kappa0 + sum_mu_kl*kappa1) / (kappa0 + n_k*kappa1);
+void StutGlobal3::update_hidden_vars(bool weighted){
+	double weight1 = weighted ? sum_n_kl : 1, weight0 = weighted ? 1 : n_k;
+	mu_h = (mu0*kappa0 + sum_mu_kl*kappa1/weight1) / (kappa0 + weight0*kappa1);
 	Vector diff = mu_h - mu0;
 	/*Matrix Smu0k = mu0 >> mu_h;
 	/*Matrix sum_scatter_h = sum_scatter_kl * kappa1
 		+ (Smu0k + Smu0k.transpose())*kappa0 - (mu_h >> mu_h)*(2 * kappa0 + n_clusters*kappa1);*/
 	Matrix Smuhk = sum_mu_kl>>mu_h;
-	Matrix sum_scatter_h = sum_scatter_mu_kl - (Smuhk + Smuhk.transpose())
-		+ (mu_h >> mu_h)*n_k;
-	sigma_h = (psi0 + (diff >> diff)*kappa0 + sum_scatter_h*kappa1 + sum_scatter_kl)
-		/ (m + mu0.n + 2 + sum_n_kl);
+	Matrix sum_scatter_h = (sum_scatter_mu_kl - (Smuhk + Smuhk.transpose())) / weight1
+		+ (mu_h >> mu_h)*weight0;
+	sigma_h = (psi0 + (diff >> diff)*kappa0 + sum_scatter_h*kappa1
+		+ sum_scatter_kl / weight1) / (m + mu0.n + 2 + (weighted ? sum_n2_kl / sum_n_kl : sum_n_kl));
 }
 
-void StutGlobal3::update_hidden_vars(StutLocal3 *x_dist, int sign){
-	sum_mu_kl += x_dist->mu_kl * sign;
-	sum_scatter_mu_kl += (x_dist->mu_kl >> x_dist->mu_kl) * sign;
-	sum_scatter_kl += x_dist->scatter * sign;
+void StutGlobal3::update_hidden_vars(StutLocal3 *x_dist, int sign, bool weighted){
+	double weight = weighted ? x_dist->n_points : 1;
+	sum_mu_kl += x_dist->mu_kl * sign * weight;
+	sum_scatter_mu_kl += (x_dist->mu_kl >> x_dist->mu_kl) * sign * weight;
+	sum_scatter_kl += x_dist->scatter * sign * weight;
 	n_k += sign;
 	sum_n_kl += x_dist->n_points * sign;
+	sum_n2_kl += x_dist->n_points * x_dist->n_points * sign;
 }
 
 void StutGlobal3::update_statistics(StutLocal3 *x_dist, int sign){
@@ -520,7 +521,7 @@ void StutNIW::update_stut(const Vector *x){
 }
 
 template void HyperParams::renew_hyper_params<unordered_set<DP<Vector>*>::iterator>(
-	unordered_set<DP<Vector>*>::iterator, unordered_set<DP<Vector>*>::iterator, int);
+	unordered_set<DP<Vector>*>::iterator, unordered_set<DP<Vector>*>::iterator, int, bool);
 template void HyperParams::update_global_stats<vector<Customer<Vector>*>::iterator>(
 	vector<Customer<Vector>*>::iterator, vector<Customer<Vector>*>::iterator);
 

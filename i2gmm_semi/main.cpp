@@ -107,8 +107,9 @@ void conf_i3gmm(I3gmm &i3gmm, Matrix &conf, int conf_start) {
 	if (conf.n > conf_start+4) i3gmm.kap1_high = conf[0][conf_start+4];
 	if (conf.n > conf_start+5) i3gmm.all_in_H = conf[0][conf_start+5];
 	if (conf.n > conf_start+6) i3gmm.tablelike = conf[0][conf_start+6];
-	if (conf.n > conf_start+7) i3gmm.cpnt_prior = conf[0][conf_start+7];
-	if (conf.n > conf_start+8) i3gmm.all_points = conf[0][conf_start+8];
+	if (conf.n > conf_start+7) i3gmm.weighted_kappa = conf[0][conf_start+7];
+	if (conf.n > conf_start+8) i3gmm.cpnt_prior = conf[0][conf_start+8];
+	if (conf.n > conf_start+9) i3gmm.all_points = conf[0][conf_start+9];
 }
 
 void run_i3gmm(string resultfile, Matrix &prior, Matrix &conf, Matrix &train, vector<Vector> &train_set, vector<Vector> &test_set,
@@ -201,12 +202,12 @@ void run_ixgmm_with_init(string resultfile, Matrix &prior, Matrix &conf, Matrix 
 	cout << "Prior:" << endl;
 	prior.print();
 	int conf_start;
-	if (conf.n == 5 || conf.n == 12) {
+	if (conf.n == 5 || conf.n == 13) {
 		// i2gmm
 		new (&i3gmm) I3gmm(prior[0], prior.submat(1, prior.r, 0, prior.m),
 			conf[0][0], conf[0][1], conf[0][2], conf[0][3], conf[0][4]);
 		conf_start = 5;
-	}else if (conf.n == 9 || conf.n == 16) {
+	}else if (conf.n == 9 || conf.n == 17) {
 		// i3gmm
 		/*i3gmm = new I3gmm(prior[prior.m - 1], prior.submat(0, prior.r - 2, 0, prior.m),
 			conf[0][0], prior[prior.r - 1][0], prior[prior.r - 1][1], alpha, gamma);*/
@@ -215,10 +216,10 @@ void run_ixgmm_with_init(string resultfile, Matrix &prior, Matrix &conf, Matrix 
 		conf_start = 9;
 	}else {
 		PERROR(("# in conf " + to_string(conf.n) + " not right.\n"
-			+ "Should be 5, 9, 12 or 16.\n").c_str());
+			+ "Should be 5, 9, 13 or 17.\n").c_str());
 		return;
 	}
-	if (conf.n == 12 || conf.n == 16) {
+	if (conf.n == 13 || conf.n == 17) {
 		conf_i3gmm(i3gmm, conf, conf_start);
 	}
 	i3gmm.add_data_with_init(train_set, train_label);
