@@ -92,8 +92,7 @@ for conf_idx = conf_idxs
     fprintf('Running %s\n',conf_names{conf_idx});
     conf = confs{conf_idx};
     prior = priors{conf_idx};
-%     for j = 1:numel(ins)
-    for j = 4
+    for j = 1:numel(ins)
         %------split data into training and testing------
         in = ismember(y(:,1), ins{j}) & (mod(1:length(y), 5)==0)';
 

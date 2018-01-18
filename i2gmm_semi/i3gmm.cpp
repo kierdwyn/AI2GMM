@@ -679,9 +679,9 @@ void I3gmm::renew_hyper_params(){
 		|| abs(old_psi00 - HyperParams::psi0[0][0]) / HyperParams::psi0[0][0] > 0.1) {
 		old_kap0 = kap0; old_psi00 = HyperParams::psi0[0][0];
 		if (tune_on_train && known_clusters.size() > 0)
-			HyperParams::renew_hyper_params(known_clusters.begin(), known_clusters.end(), all_in_H);
+			HyperParams::renew_hyper_params(known_clusters.begin(), known_clusters.end(), all_in_H, weighted_kappa);
 		else
-			HyperParams::renew_hyper_params(clusters.begin(), clusters.end(), all_in_H);
+			HyperParams::renew_hyper_params(clusters.begin(), clusters.end(), all_in_H, weighted_kappa);
 		if (kap1_bigthan_kap0 > 0 && kap1 < kap0)
 			kap1 = kap1_bigthan_kap0*kap0;
 		if (kap1_high > 0 && kap1 > kap1_high*kap0)

@@ -23,6 +23,7 @@ public:
 	int kap1_bigthan_kap0 = 0; double kap1_high = 0;
 	int all_in_H = 0; // 0:origin, 1: full, 2: ML
 	int tablelike = 0; // 0: point, 1:table, 2:combine, 3:condition
+	bool weighted_kappa = false; // Calculate unweighted kappa.
 	bool all_points = false; // Don't restrict data point to its cluster when sampling its component
 	bool cpnt_prior = false;
 	double max_clusters = INFINITY;

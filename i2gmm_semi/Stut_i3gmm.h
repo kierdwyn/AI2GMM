@@ -30,7 +30,7 @@ public:
 		double c1, double c2, double alpha0, double beta0,
 		double alpha1, double beta1);
 	template<class Iter> static void update_global_stats(Iter first, Iter last);
-	template <class Iter> static void renew_hyper_params(Iter first, Iter last, int psi0choice);
+	template <class Iter> static void renew_hyper_params(Iter first, Iter last, int psi0choice, bool weighted=true);
 
 	static Vector mx_all;
 	static Matrix sx_all;
@@ -59,10 +59,10 @@ public:
 	//Matrix sigma_s;
 
 	// Hidden variables for calculating hyper-parameters
-	double sum_square_n_kl = 0;
-	Matrix sum_w_scatter_kl;
-	Matrix sum_w_scatter;
-	Vector sum_w_mu_kl;
+	double n_k = 0, sum_n_kl = 0, sum_n2_kl = 0;
+	Matrix sum_scatter_mu_kl;
+	Matrix sum_scatter_kl;
+	Vector sum_mu_kl;
 	Vector mu_h;
 	Matrix sigma_h;
 
@@ -79,8 +79,8 @@ public:
 	template <class Iter> void add_all(Iter first, Iter last);
 	void reset();
 	void update_stut(int isML=0);
-	void update_hidden_vars();
-	void update_hidden_vars(StutLocal3 *x_dist, int sign);
+	void update_hidden_vars(bool weighted);
+	void update_hidden_vars(StutLocal3 *x_dist, int sign, bool weighted);
 
 private:
 	void update_statistics(StutLocal3 *x_dist, int sign);
