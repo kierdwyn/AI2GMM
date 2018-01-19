@@ -1,6 +1,6 @@
 % Demo of run IGMM, I2GMM, AI2GMM on the synthetic dataset.
-% clear;
-% startup;
+clear;
+startup;
 
 %-----load data and normalize-------
 fpath = '..\data\synthetic\'; % folder containing the data set
@@ -32,13 +32,13 @@ alpha = 1; gamma = 1;
 priors{1} = [mu0;sigma0];
 confs{1} = [m kappa0 alpha];
 % hyper parameters for i2gmm
-priors{2} = [mu0;sigma0]; specs{2} = [ 0 0 0 [0 0] 0 0];
+priors{2} = [mu0;sigma0]; specs{2} = [ 0 0 0 [0 0] 0 0 0];
 confs{2} = [m kappa0 kappa1 alpha gamma specs{2}];
 % hyper parameters for ai2gmm
 c1 = 0.1; c2 = d+2;
 beta0 = d; alpha0 = beta0*kappa0 + 1;
 beta1 = d; alpha1 = beta1*kappa1 + 1;
-priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 0 0 0 [0 0] 0 0 1]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table, weighted kappa
+priors{3} = [mu0;sigma0/(c2-d)]; specs{3} = [ 0 0 0 [0 0] 0 0 0]; % ratio, prior, train, kap1>kap0, kap1<x*kap0, all in H, table, weighted kappa
 confs{3} = [m c1 c2 alpha0 beta0 alpha1 beta1 alpha gamma specs{3}];
 
 %------split data into training and testing------
