@@ -42,7 +42,7 @@ HyperParams::HyperParams(Vector mu0, Matrix sigma0, double m,
 }
 
 void HyperParams::init(Vector mu0, Matrix sigma0, double m,
-	double kappa0, double kappa1){
+	double kappa0, double kappa1) {
 	HyperParams::mu0 = Vector(mu0);
 	HyperParams::psi0 = Matrix(sigma0);
 	HyperParams::kappa0 = kappa0;
@@ -52,7 +52,7 @@ void HyperParams::init(Vector mu0, Matrix sigma0, double m,
 
 void HyperParams::init(Vector mu0, Matrix sigma0, double m,
 	double c1, double c2, double alpha0, double beta0,
-	double alpha1, double beta1){
+	double alpha1, double beta1) {
 	HyperParams::mu0 = Vector(mu0);
 	//HyperParams::psi0 = Matrix(sigma0/(c2 + mu0.n + 1));
 	HyperParams::psi0 = Matrix(sigma0 * (c2 - mu0.n));
@@ -76,7 +76,7 @@ void HyperParams::init(Vector mu0, Matrix sigma0, double m,
 }
 
 template <class Iter>
-void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice, bool weighted){
+void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice, bool weighted) {
 	int K = 0, d = mu0.n;
 	Vector mu0_1(d); mu0_1.zero();
 	Matrix sum_sigma_hinv(d); sum_sigma_hinv.zero();
@@ -85,7 +85,7 @@ void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice, bool
 	Vector mx_all1 = mx_all;
 	int nx_all1 = nx_all, nx_kappa1 = nx_all;
 
-	for (Iter citer = first; citer != last; ++citer){
+	for (Iter citer = first; citer != last; ++citer) {
 		DP<Vector> *cluster = dynamic_cast<DP<Vector>*>(*citer);
 		StutGlobal3 *c_dist = dynamic_cast<StutGlobal3*>(cluster->get_dist());
 		if (c_dist->sum_n < mu0.n) { // Skip clusters don't have enough points.
@@ -119,7 +119,7 @@ void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice, bool
 		// Update mu_h (mu_k),sigma_k
 		c_dist->update_hidden_vars(weighted);
 
-		Matrix sigma_hinv = c_dist->sigma_h.inverse();
+		Matrix sigma_hinv = (c_dist->sigma_h).inverse();
 		// Update kappa1_2
 		for (Table<Vector> *t : cluster->tables) {
 			//if (t->n_custs < d) { nx_kappa1 -= t->n_custs; continue; }
@@ -132,17 +132,26 @@ void HyperParams::renew_hyper_params(Iter first, Iter last, int psi0choice, bool
 		Vector diff = c_dist->mu_h - mu0;
 		kappa0_1 += (diff * (sigma_hinv * diff)) * (weighted ? c_dist->sum_n : 1);
 		kappa1_1 += c_dist->n_k;
+		/*sum_sigma_hinv += sigma_hinv * (weighted ? c_dist->sum_n : 1);
+		mu0_1 += (sigma_hinv * c_dist->mu_h) * (weighted ? c_dist->sum_n : 1);*/
 		sum_sigma_hinv += sigma_hinv;
-		mu0_1 += (sigma_hinv * c_dist->mu_h);
+		mu0_1 += sigma_hinv * c_dist->mu_h;
 		K++;
 	}
+	double weight = weighted ? nx_all1 : 1;
 	kappa1 = (2 * (alpha1 - 1) + d*(weighted ? 1 : kappa1_1)) / (2 * beta1 + kappa1_2 / (weighted ? nx_kappa1 : 1));
-	kappa0 = (2 * (alpha0 - 1) + d*(weighted ? 1 : K)) / (2 * beta0 + kappa0_1 / (weighted ? nx_all1 : 1));
+	kappa0 = (2 * (alpha0 - 1) + d*(weighted ? 1 : K)) / (2 * beta0 + kappa0_1 / weight);
 	kappa0 = 1e-4 > kappa0 ? 1e-4 : kappa0;
 	kappa1 = 1e-4 > kappa1 ? 1e-4 : kappa1;
 	Vector diff = mu0 - mu00;
-	psi0 = (sigma0_inv + (diff >> diff)*c1 + sum_sigma_hinv).inverse() * (c2 - d + m*K) + eye(d)*1e-4;
-	mu0 = (psi0*mu00*c1 + mu0_1*kappa0) / (psi0*c1 + sum_sigma_hinv*kappa0);
+	/*psi0 = (sigma0_inv + (diff >> diff)*c1 + sum_sigma_hinv / weight).inverse()
+		* (c2 - d + m*(weighted?1:K)) + eye(d)*1e-4;
+	mu0 = (psi0*mu00*c1 + mu0_1*kappa0 / weight)
+		/ (psi0*c1 + sum_sigma_hinv*kappa0 / weight);*/
+	psi0 = (sigma0_inv + (diff >> diff)*c1 + sum_sigma_hinv).inverse()
+		* (c2 - d + m*K) + eye(d)*1e-4;
+	mu0 = (psi0*mu00*c1 + mu0_1*kappa0)
+		/ (psi0*c1 + sum_sigma_hinv*kappa0);
 
 	double a1;
 	if (psi0choice == 2 || psi0choice == 4) {
@@ -236,30 +245,30 @@ inline void HyperParams::update_global_stats(Iter first, Iter last) {
 }
 
 
-StutGlobal3::StutGlobal3(){
+StutGlobal3::StutGlobal3() {
 	init();
 }
 
 StutGlobal3::StutGlobal3(Vector mu0, Matrix psi0, double m,
 	double kappa0, double kappa1)
-	:HyperParams(mu0,psi0,m,kappa0,kappa1) {
+	:HyperParams(mu0, psi0, m, kappa0, kappa1) {
 	init();
 }
 
 StutGlobal3::StutGlobal3(Vector mu0, Matrix sigma0, double m,
 	double c1, double c2, double alpha0, double beta0,
 	double alpha1, double beta1)
-	:HyperParams(mu0, sigma0, m, c1, c2, alpha0, beta0, alpha1, beta1){
+	: HyperParams(mu0, sigma0, m, c1, c2, alpha0, beta0, alpha1, beta1) {
 	init();
 }
 
-double StutGlobal3::loglike(const Table<Vector> &t, int tablelike){
+double StutGlobal3::loglike(const Table<Vector> &t, int tablelike) {
 	double ret = 0;
 	switch (tablelike)
 	{
 	case 0: // likelihood of all points belongs to empty component
 	case 1:
-	case 2:{ // likelihood of all points to its component after moving to current cluster
+	case 2: { // likelihood of all points to its component after moving to current cluster
 		StutLocal3 *dist = nullptr;
 		if (tablelike) {
 			dist = new StutLocal3(*dynamic_cast<StutLocal3*>(t.H));
@@ -272,49 +281,49 @@ double StutGlobal3::loglike(const Table<Vector> &t, int tablelike){
 		}
 		delete dist;
 	}
-		break;
-	//case 3: { // likelihood of the component's sufficient statistics conditioned on current cluster
-	//	StutLocal3 *dist1 = dynamic_cast<StutLocal3*>(t.H);
-	//	if (n_clusters > 1e-5) {
-	//		Normal N(mu_h, sigma_h*(t.n_custs + kappa1) / (t.n_custs*kappa1));
-	//		Wishart W(sigma_h, t.n_custs);
-	//		if (t.n_custs > d)
-	//			ret = N.likelihood(dist1->mean) + W.likelihood(dist1->scatter);
-	//		else
-	//			ret = N.likelihood(dist1->mean);
+			break;
+			//case 3: { // likelihood of the component's sufficient statistics conditioned on current cluster
+			//	StutLocal3 *dist1 = dynamic_cast<StutLocal3*>(t.H);
+			//	if (n_clusters > 1e-5) {
+			//		Normal N(mu_h, sigma_h*(t.n_custs + kappa1) / (t.n_custs*kappa1));
+			//		Wishart W(sigma_h, t.n_custs);
+			//		if (t.n_custs > d)
+			//			ret = N.likelihood(dist1->mean) + W.likelihood(dist1->scatter);
+			//		else
+			//			ret = N.likelihood(dist1->mean);
 
-	//	}
-	//	else {
-	//		double df = m + t.n_custs + 1 - mu0.n;
-	//		Stut st(mu0, (dist1->scatter + psi0)*(1 / t.n_custs + 1 / kappa1 + 1 / kappa0) / df, df);
-	//		ret = st.likelihood(dist1->mean);
-	//		if (t.n_custs > d)
-	//			ret += dist1->scatter.chol().sumlogdiag()*(t.n_custs - mu0.n - 1)
-	//				+ psi0.chol().sumlogdiag()*m + gamlnd(m + t.n_custs, mu0.n)
-	//				- (dist1->scatter + psi0).chol().sumlogdiag()*(m + t.n_custs)
-	//				- gamlnd(t.n_custs, mu0.n) - gamlnd(m, mu0.n);
-	//	}
-	//}
-	//	break;
+			//	}
+			//	else {
+			//		double df = m + t.n_custs + 1 - mu0.n;
+			//		Stut st(mu0, (dist1->scatter + psi0)*(1 / t.n_custs + 1 / kappa1 + 1 / kappa0) / df, df);
+			//		ret = st.likelihood(dist1->mean);
+			//		if (t.n_custs > d)
+			//			ret += dist1->scatter.chol().sumlogdiag()*(t.n_custs - mu0.n - 1)
+			//				+ psi0.chol().sumlogdiag()*m + gamlnd(m + t.n_custs, mu0.n)
+			//				- (dist1->scatter + psi0).chol().sumlogdiag()*(m + t.n_custs)
+			//				- gamlnd(t.n_custs, mu0.n) - gamlnd(m, mu0.n);
+			//	}
+			//}
+			//	break;
 	default:
 		break;
 	}
 	return ret;
 }
 
-void StutGlobal3::add_component(StutLocal3 *x_dist){
+void StutGlobal3::add_component(StutLocal3 *x_dist) {
 	update_statistics(x_dist, 1);
 	update_stut();
 }
 
-void StutGlobal3::remove_component(StutLocal3 *x_dist){
+void StutGlobal3::remove_component(StutLocal3 *x_dist) {
 	update_statistics(x_dist, -1);
 	update_stut();
 }
 
 template <class Iter>
-void StutGlobal3::add_all(Iter first, Iter last){
-	for (Iter iter = first; iter != last; ++iter){
+void StutGlobal3::add_all(Iter first, Iter last) {
+	for (Iter iter = first; iter != last; ++iter) {
 		Table<Vector> *t = dynamic_cast<Table<Vector>*>(*iter);
 		StutLocal3 *x_dist = dynamic_cast<StutLocal3*>(t->H);
 		update_statistics(x_dist, 1);
@@ -322,7 +331,7 @@ void StutGlobal3::add_all(Iter first, Iter last){
 	update_stut();
 }
 
-void StutGlobal3::reset(){
+void StutGlobal3::reset() {
 	n_clusters = 0;
 	sum_weighted_n = 0;
 	sum_n = 0;
@@ -330,21 +339,21 @@ void StutGlobal3::reset(){
 	sum_scatter.zero();
 }
 
-void StutGlobal3::update_hidden_vars(bool weighted){
+void StutGlobal3::update_hidden_vars(bool weighted) {
 	double weight1 = weighted ? sum_n_kl : 1, weight0 = weighted ? 1 : n_k;
-	mu_h = (mu0*kappa0 + sum_mu_kl*kappa1/weight1) / (kappa0 + weight0*kappa1);
+	mu_h = (mu0*kappa0 + sum_mu_kl*kappa1 / weight1) / (kappa0 + weight0*kappa1);
 	Vector diff = mu_h - mu0;
 	/*Matrix Smu0k = mu0 >> mu_h;
 	/*Matrix sum_scatter_h = sum_scatter_kl * kappa1
-		+ (Smu0k + Smu0k.transpose())*kappa0 - (mu_h >> mu_h)*(2 * kappa0 + n_clusters*kappa1);*/
-	Matrix Smuhk = sum_mu_kl>>mu_h;
+	+ (Smu0k + Smu0k.transpose())*kappa0 - (mu_h >> mu_h)*(2 * kappa0 + n_clusters*kappa1);*/
+	Matrix Smuhk = sum_mu_kl >> mu_h;
 	Matrix sum_scatter_h = (sum_scatter_mu_kl - (Smuhk + Smuhk.transpose())) / weight1
 		+ (mu_h >> mu_h)*weight0;
 	sigma_h = (psi0 + (diff >> diff)*kappa0 + sum_scatter_h*kappa1
 		+ sum_scatter_kl / weight1) / (m + mu0.n + 2 + (weighted ? sum_n2_kl / sum_n_kl : sum_n_kl));
 }
 
-void StutGlobal3::update_hidden_vars(StutLocal3 *x_dist, int sign, bool weighted){
+void StutGlobal3::update_hidden_vars(StutLocal3 *x_dist, int sign, bool weighted) {
 	double weight = weighted ? x_dist->n_points : 1;
 	sum_mu_kl += x_dist->mu_kl * sign * weight;
 	sum_scatter_mu_kl += (x_dist->mu_kl >> x_dist->mu_kl) * sign * weight;
@@ -354,7 +363,7 @@ void StutGlobal3::update_hidden_vars(StutLocal3 *x_dist, int sign, bool weighted
 	sum_n2_kl += x_dist->n_points * x_dist->n_points * sign;
 }
 
-void StutGlobal3::update_statistics(StutLocal3 *x_dist, int sign){
+void StutGlobal3::update_statistics(StutLocal3 *x_dist, int sign) {
 	n_clusters += sign * (x_dist->n_points / x_dist->n_points_unweighted);
 	if (n_clusters == INFINITY || n_clusters == -INFINITY || !(n_clusters == n_clusters))
 		PERROR("I3gmm:StutGlobal3:update_statistics: n_clusters infinity");
@@ -365,7 +374,7 @@ void StutGlobal3::update_statistics(StutLocal3 *x_dist, int sign){
 	sum_scatter += x_dist->scatter * sign;
 }
 
-void StutGlobal3::update_stut(int isML){ // TODO: combine with Stut. like set_statistics(mu, sigma, eta)
+void StutGlobal3::update_stut(int isML) { // TODO: combine with Stut. like set_statistics(mu, sigma, eta)
 	kappa_s = (sum_weighted_n + kappa0)*kappa1
 		/ (sum_weighted_n + kappa0 + kappa1);
 
@@ -385,12 +394,12 @@ void StutGlobal3::update_stut(int isML){ // TODO: combine with Stut. like set_st
 	}
 
 	calculateNormalizer();
-	if (normalizer == INFINITY || normalizer == -INFINITY || !(normalizer == normalizer)){
+	if (normalizer == INFINITY || normalizer == -INFINITY || !(normalizer == normalizer)) {
 		PERROR("I3gmm:StutGlobal3:update_stut: normalizer infinity");
 	}
 }
 
-void StutGlobal3::init(){
+void StutGlobal3::init() {
 	int d = mu0.n;
 	weighted_mean = Vector(d); sum_scatter = Matrix(d);
 	weighted_mean.zero(); sum_scatter.zero();
@@ -416,7 +425,7 @@ void Stut3::addData(const Vector & x, double weight)
 {
 	Vector diff = x - mean;
 	/*scatter = (scatter + (diff >> diff) * weight / (n_points + weight))
-		* n_points / (n_points + weight);*/
+	* n_points / (n_points + weight);*/
 	scatter += (diff >> diff) * weight * n_points / (n_points + weight);
 	mean = (mean*n_points + x*weight) / (n_points + weight);
 	n_points += weight;
@@ -480,7 +489,7 @@ void StutLocal3::update_hidden_vars() {
 //	update_stut();
 //}
 
-void StutLocal3::update_stut(const Vector *x){
+void StutLocal3::update_stut(const Vector *x) {
 	Vector diff = mean - g_dist->mu;
 	Matrix s_mu = (diff >> diff)*harmean(n_points, g_dist->kappa_s);
 
@@ -496,7 +505,7 @@ void StutLocal3::update_stut(const Vector *x){
 }
 
 
-void StutNIW::update_stut(const Vector *x){
+void StutNIW::update_stut(const Vector *x) {
 	double n_ks = kappa0 + n_points;
 	mu = (mu0*kappa0 + mean*n_points) / n_ks;
 	eta = n_points + m - mu0.n + 1;

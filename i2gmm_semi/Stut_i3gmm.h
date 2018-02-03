@@ -35,7 +35,6 @@ public:
 	static Vector mx_all;
 	static Matrix sx_all;
 	static double nx_all;
-	static double n_classes;
 
 private:
 	// Hyper-parameters for i3gmm

@@ -17,6 +17,8 @@ for i = 1:n_clusters
     end
     mu(i, :) = mvnrnd(mu0, sigma(:,:,i)/kappa);
     x(sum(n_data(1:i-1)) + 1 : sum(n_data(1:i)),:) = mvnrnd(mu(i, :), sigma(:,:,i), n_data(i));
+%     mu(i, :) = mvtrnd(sigma(:,:,i)/kappa,3,1) + mu0;    
+%     x(sum(n_data(1:i-1)) + 1 : sum(n_data(1:i)),:) = mvtrnd(sigma(:,:,i)/3, 3, n_data(i)) + repmat(mu(i, :), n_data(i), 1);
     labels(sum(n_data(1:i-1)) + 1 : sum(n_data(1:i)),:) = i;
 end
 
